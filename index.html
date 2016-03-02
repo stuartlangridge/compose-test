@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Compose Key game</title>
+<style>
+body {
+    font-family: sans-serif;
+}
+figure {
+    display: block;
+    width: 100%;
+    padding: 0;
+    margin: 1em 0;
+}
+figure img {
+    display: block;
+    width: 20vmin;
+    height: 20vmin;
+    margin: 0 auto;
+}
+figcaption {
+    display: block;
+    text-align: center;
+    margin: 0.5em 0 2em;
+    color: #999;
+    font-variant: small-caps;
+}
+.keys {
+    text-align: center;
+}
+.keys p, .keys ol, .keys li {
+    display: inline-block;
+    vertical-align: bottom;
+}
+.keys ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.keys li {
+    font-size: 8vmin;
+}
+.keys p, .keys li {
+    margin: 1vmin;
+    padding: 0;
+    min-width: 10vmin;
+    height: 10vmin;
+    background: #ccc;
+    border: 5px solid #999;
+    border-radius: 1vmin;
+    line-height: 10vmin;
+}
+.keys li.hi {
+    border-color: #080;
+}
+.keys p {
+    padding: 0 0.5em;
+}
+
+.box { display: none; }
+
+.box {
+    border: 5px solid #797;
+    border-radius: 10px;
+    margin: 0 auto;
+    max-width: 70%;
+    padding: 0.5em;
+    text-align: center;
+}
+.box h2 { margin: 0; }
+.correct { background: #cdc; }
+.wrong { background: #dcc; border-color: #977; }
+.revealed { background: #ccd; border-color: #779; }
+
+.box p strong span, span.key {
+    display: inline-block;
+    background: #ccc;
+    border: 1px solid #999;
+    margin: 0 1px;
+    border-radius: 2px;
+    font-family: monospace;
+}
+.box p strong span {
+    font-weight: bold;
+    font-size: 1.2em;
+    padding: 5px;
+}
+.correct p.count1 {
+    display: none;
+}
+.box strong {
+    font-weight: normal;
+}
+.box button {
+    font-size: 1.5em;
+}
+
+html, body {
+    padding: 0;
+    margin: 0;
+}
+h1 {
+    margin: 0;
+    background: #ccd;
+    text-align: center;
+    border-bottom: 2px solid #779;
+}
+p.desc {
+    max-width: 60em;
+    margin: 1em auto;
+    text-align: center;
+    position: relative;
+    opacity: 1.0;
+    transition: all 800ms ease;
+}
+p.desc.gone {
+    opacity: 0;
+}
+</style>
+</head>
+<body>
+<h1>The Compose Key Game</h1>
+
+<p class="desc">If you're using Linux then you have an easy way to type all sorts of unusual characters. You press
+the “<a href="https://help.ubuntu.com/community/ComposeKey">Compose Key</a>” (probably a combination of <span class="key">Shift</span> + <span class="key">AltGr</span>), then release Compose, then type a little sequence of keys which combine to make the character you want. So, <span class="key">Compose</span> + <span class="key">/</span> + <span class="key">=</span> combine to make ≠: an equals plus a slash, geddit? Here, you can test your knowledge of these <em>Compose key sequences</em> and learn some new ones. Press the keys to get started!</p>
+
+<figure>
+    <img src="">
+    <figcaption>
+        
+    </figcaption>
+</figure>
+
+<div class="keys">
+    <p>Compose</p>
+    <ol></ol>
+</div>
+
+<div class="correct box">
+    <h2>Correct!</h2>
+    <p>Possible Compose key combinations for this character are <strong></strong></p>
+    <p>Hit Enter to <button class="new">try another</button>.</p>
+</div>
+
+<div class="revealed box">
+    <h2>Reveal the answer</h2>
+    <p>Possible Compose key combinations for this character are <strong></strong></p>
+    <p>Hit Enter to <button class="new">try another</button>.</p>
+</div>
+
+
+<div class="wrong box">
+    <h2>Wrong!</h2>
+    <p>Sorry. You can <button class="repeat">try again</button> (hit Enter), or <button class="giveup">reveal the answer</button>.</p>
+</div>
+
+<script>
+var allChars, chardata, slots, slot, pressed, playing, descgone;
+function newRound() {
+    var k = Object.keys(allChars);
+    var r = k[Math.round(Math.random() * k.length)];
+    chardata = allChars[r];
+    if (chardata.name.match(/^LATIN/)) { return newRound(); } //  skip letters
+    if (chardata.name.match(/^MODIFIER LETTER/)) { return newRound(); } //  skip letters
+    if (chardata.name.match(/^CIRCLED/) && (Math.random() > 0.1)) { return newRound(); } //  skip letters
+    setupround();
+}
+function setupround() {
+    document.querySelector("img").src = "chars/" + chardata.codepoint + ".svg";
+    document.querySelector("figcaption").firstChild.nodeValue = chardata.name;
+    var ol = document.querySelector("ol");
+    ol.innerHTML = "";
+    slots = chardata.keys[0].length;
+    for (var i=0; i<slots; i++) {
+        var li = document.createElement("li");
+        li.appendChild(document.createTextNode(""));
+        ol.appendChild(li);
+    }
+    var kh = document.querySelector(".correct strong");
+    var rh = document.querySelector(".revealed strong");
+    kh.innerHTML = ""; rh.innerHTML = "";
+    kh.parentNode.className = "count" + chardata.keys.length;
+    for (var kl=0; kl<chardata.keys.length; kl++) {
+        if (kl > 0) {
+            kh.appendChild(document.createTextNode(" or "));
+            rh.appendChild(document.createTextNode(" or "));
+        }
+        chardata.keys[kl].forEach(function(kk) {
+            var span = document.createElement("span");
+            span.appendChild(document.createTextNode(kk));
+            kh.appendChild(span);
+            var span2 = document.createElement("span");
+            span2.appendChild(document.createTextNode(kk));
+            rh.appendChild(span2);
+        })
+    }
+    playing = true;
+    slot = 0;
+    pressed = [];
+    highlight();
+}
+function highlight() {
+    Array.prototype.slice.call(document.querySelectorAll("ol li")).className = "";
+    document.querySelectorAll("ol li")[slot].className = "hi";
+}
+function check() {
+    playing = false;
+    var win = false;
+    chardata.keys.forEach(function(correct) {
+        if (win) return;
+        if (correct.length != pressed.length) { return; } // should not happen
+        var thiswin = true;
+        for (var i=0; i<correct.length; i++) {
+            if (pressed[i] != correct[i]) { thiswin = false; }
+        }
+        if (thiswin) { win = true; }
+    });
+    if (win) {
+        document.querySelector(".correct").style.display = "block";
+    } else {
+        document.querySelector(".wrong").style.display = "block";
+    }
+}
+function kp(e) {
+    if (!descgone) {
+        descgone = true;
+        var desc = document.querySelector(".desc");
+        desc.className += " gone";
+        setTimeout(function() { desc.style.display = "none"; }, 800)
+    }
+    if (!playing) {
+        if (e.which == 13) {
+            if (document.querySelector(".wrong").style.display == "block") {
+                document.querySelector(".wrong").style.display = "none";
+                setupround();
+            } else {
+                document.querySelector(".correct").style.display = "none";
+                document.querySelector(".revealed").style.display = "none";
+                newRound();
+            }
+        }
+        return;
+    }
+    if(e.which == chardata.codepoint_dec) {
+        playing = false;
+        document.querySelector(".correct").style.display = "block";
+    }
+    var pr = String.fromCharCode(e.which);
+    document.querySelectorAll("ol li")[slot].firstChild.nodeValue = pr;
+    slot += 1;
+    pressed.push(pr);
+    if (slot == slots) {
+        check();
+    }
+}
+function chars(c) {
+    allChars = c;
+    document.onkeypress = kp;
+    newRound();
+}
+document.querySelector(".correct .new").onclick = function() {
+    document.querySelector(".correct").style.display = "none";
+    newRound();
+}
+document.querySelector(".revealed .new").onclick = function() {
+    document.querySelector(".revealed").style.display = "none";
+    newRound();
+}
+document.querySelector(".wrong .repeat").onclick = function() {
+    document.querySelector(".wrong").style.display = "none";
+    setupround();
+}
+document.querySelector(".wrong .giveup").onclick = function() {
+    document.querySelector(".wrong").style.display = "none";
+    document.querySelector(".revealed").style.display = "block";
+}
+</script>
+<script src="chars.json"></script>
+</body>
+</html>
