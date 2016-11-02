@@ -163,11 +163,12 @@ the “<a href="https://help.ubuntu.com/community/ComposeKey">Compose Key</a>”
 
 <div class="wrong box">
     <h2>Wrong!</h2>
-    <p>Sorry. You can <button class="repeat">try again</button> (hit Enter), or <button class="giveup">reveal the answer</button>.</p>
+    <p>Sorry. You can <button class="repeat">try again</button> (hit <code>Enter</code>), or <button class="giveup">reveal the answer</button> (hit <code>r</code>).</p>
 </div>
 
 <script>
 var allChars, chardata, slots, slot, pressed, playing, descgone;
+var done = [];
 function newRound() {
     var k = Object.keys(allChars);
     var r = k[Math.round(Math.random() * k.length)];
@@ -175,12 +176,14 @@ function newRound() {
     if (chardata.name.match(/^LATIN/) && (Math.random() > 0.1)) { return newRound(); } //  skip letters
     if (chardata.name.match(/^MODIFIER LETTER/)) { return newRound(); } //  skip letters
     if (chardata.name.match(/^CIRCLED/) && (Math.random() > 0.1)) { return newRound(); } //  skip letters
+    if (done.indexOf(chardata.codepoint) !== -1) { return newRound(); } // skip ones we've already done
+    done.push(chardata.codepoint);
     setupround();
 }
 function setupround() {
     document.querySelector("img").src = "chars/" + chardata.codepoint + ".svg";
     document.querySelector("figcaption").firstChild.nodeValue = chardata.name;
-    if (chardata.name.match(/^SUBSCRIPT /)) {
+    if (chardata.name.match(/^SUBSCRIPT /) || chardata.name.match(/^ LOW-9 /)) {
         document.querySelector("img").className = "subscript";
     } else if (chardata.name.match(/^SUPERSCRIPT /)) {
         document.querySelector("img").className = "superscript";
@@ -241,6 +244,7 @@ function check() {
     }
 }
 function kp(e) {
+    console.log("kp", e.which);
     if (!descgone) {
         descgone = true;
         var desc = document.querySelector(".desc");
@@ -257,6 +261,9 @@ function kp(e) {
                 document.querySelector(".revealed").style.display = "none";
                 newRound();
             }
+        } else if (e.which == 114) { // r
+            document.querySelector(".wrong").style.display = "none";
+            document.querySelector(".revealed").style.display = "block";
         }
         return;
     }
