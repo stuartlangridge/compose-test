@@ -20,6 +20,16 @@ figure img {
     height: 20vmin;
     margin: 0 auto;
 }
+figure img.superscript {
+    width: 8vmin;
+    height: 8vmin;
+    margin-bottom: 12vmin;
+}
+figure img.subscript {
+    width: 8vmin;
+    height: 8vmin;
+    margin-top: 12vmin;
+}
 figcaption {
     display: block;
     text-align: center;
@@ -162,7 +172,7 @@ function newRound() {
     var k = Object.keys(allChars);
     var r = k[Math.round(Math.random() * k.length)];
     chardata = allChars[r];
-    if (chardata.name.match(/^LATIN/)) { return newRound(); } //  skip letters
+    if (chardata.name.match(/^LATIN/) && (Math.random() > 0.1)) { return newRound(); } //  skip letters
     if (chardata.name.match(/^MODIFIER LETTER/)) { return newRound(); } //  skip letters
     if (chardata.name.match(/^CIRCLED/) && (Math.random() > 0.1)) { return newRound(); } //  skip letters
     setupround();
@@ -170,6 +180,13 @@ function newRound() {
 function setupround() {
     document.querySelector("img").src = "chars/" + chardata.codepoint + ".svg";
     document.querySelector("figcaption").firstChild.nodeValue = chardata.name;
+    if (chardata.name.match(/^SUBSCRIPT /)) {
+        document.querySelector("img").className = "subscript";
+    } else if (chardata.name.match(/^SUPERSCRIPT /)) {
+        document.querySelector("img").className = "superscript";
+    } else {
+        document.querySelector("img").className = "";
+    }
     var ol = document.querySelector("ol");
     ol.innerHTML = "";
     slots = chardata.keys[0].length;
